@@ -1,0 +1,1389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SpeakEasy · AI Expression Assistant</title>
+  <style>
+    :root {
+      --bg: #000000;
+      --bg-2: #030006;
+      --surface: rgba(255, 255, 255, 0.055);
+      --surface-2: rgba(255, 255, 255, 0.085);
+      --border: rgba(255, 255, 255, 0.14);
+      --text: #ffffff;
+      --muted: #c9c1d8;
+      --weak: #8a8a8a;
+      --purple: #8b5cf6;
+      --purple-2: #9b5cff;
+      --lavender: #c084fc;
+      --cyan: #67e8ff;
+      --shadow: 0 26px 80px rgba(80, 37, 170, 0.34);
+      --max: 1280px;
+    }
+
+    body.light {
+      --bg: #ffffff;
+      --bg-2: #faf7ff;
+      --surface: rgba(255, 255, 255, 0.74);
+      --surface-2: rgba(255, 255, 255, 0.92);
+      --border: rgba(124, 58, 237, 0.2);
+      --text: #160b2e;
+      --muted: #6b5b8a;
+      --weak: #7b6d99;
+      --purple: #7c3aed;
+      --purple-2: #8b5cf6;
+      --lavender: #8b5cf6;
+      --cyan: #0891b2;
+      --shadow: 0 24px 70px rgba(124, 58, 237, 0.18);
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      color: var(--text);
+      font-family: Inter, Geist, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+      background:
+        radial-gradient(circle at 50% 4%, rgba(139, 92, 246, 0.28), transparent 34rem),
+        radial-gradient(circle at 82% 30%, rgba(103, 232, 255, 0.08), transparent 26rem),
+        linear-gradient(180deg, var(--bg), var(--bg-2) 48%, #08060d);
+      overflow-x: hidden;
+      transition: background 360ms ease, color 240ms ease;
+    }
+
+    body.light {
+      background:
+        radial-gradient(circle at 50% 4%, rgba(139, 92, 246, 0.18), transparent 34rem),
+        radial-gradient(circle at 82% 30%, rgba(103, 232, 255, 0.14), transparent 26rem),
+        linear-gradient(180deg, #ffffff, #faf7ff 48%, #f3ecff);
+    }
+
+    button, textarea { font: inherit; }
+    button { border: 0; cursor: pointer; }
+    a { color: inherit; text-decoration: none; }
+
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      height: 64px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(0, 0, 0, 0.58);
+      backdrop-filter: blur(22px);
+    }
+
+    body.light .nav { background: rgba(255, 255, 255, 0.76); }
+
+    .nav-inner {
+      max-width: var(--max);
+      height: 100%;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 820;
+    }
+
+    .logo {
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      position: relative;
+      background: linear-gradient(145deg, rgba(192, 132, 252, 0.98), rgba(74, 30, 154, 0.9));
+      box-shadow: 0 0 28px rgba(155, 92, 255, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    }
+
+    .logo::before {
+      content: "";
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      top: 10px;
+      left: 10px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.86);
+      transform: rotate(45deg);
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .icon-btn {
+      width: 40px;
+      height: 40px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      color: var(--text);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      transition: transform 180ms ease, background 180ms ease;
+    }
+
+    .primary-btn, .ghost-btn, .copy-btn, .small-action {
+      min-height: 44px;
+      border-radius: 999px;
+      transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
+    }
+
+    .primary-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 0 22px;
+      color: #fff;
+      background: linear-gradient(135deg, var(--purple), var(--purple-2), var(--lavender));
+      box-shadow: 0 16px 42px rgba(139, 92, 246, 0.34);
+      font-weight: 780;
+    }
+
+    .primary-btn:hover, .icon-btn:hover, .ghost-btn:hover, .copy-btn:hover, .small-action:hover {
+      transform: translateY(-2px);
+    }
+
+    .hero {
+      position: relative;
+      min-height: calc(100vh - 64px);
+      padding: 18px 24px 30px;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 18%, rgba(155, 92, 255, 0.35), transparent 32rem),
+        radial-gradient(circle at 88% 76%, rgba(103, 232, 255, 0.1), transparent 26rem),
+        linear-gradient(180deg, rgba(3, 0, 6, 0.88), rgba(20, 6, 36, 0.58));
+    }
+
+    body.light .hero {
+      background:
+        radial-gradient(circle at 50% 18%, rgba(155, 92, 255, 0.17), transparent 32rem),
+        radial-gradient(circle at 88% 76%, rgba(103, 232, 255, 0.17), transparent 26rem),
+        linear-gradient(180deg, #ffffff, #faf7ff);
+    }
+
+    .hero::before, .hero::after {
+      content: "";
+      position: absolute;
+      pointer-events: none;
+      border-radius: 999px;
+      filter: blur(2px);
+      opacity: 0.72;
+    }
+
+    .hero::before {
+      width: 210px;
+      height: 150px;
+      left: max(22px, calc(50% - 690px));
+      top: 110px;
+      background: linear-gradient(145deg, rgba(255,255,255,.26), rgba(155,92,255,.18));
+      clip-path: polygon(0 48%, 100% 0, 70% 100%, 48% 58%, 22% 77%);
+      animation: floatSoft 7s ease-in-out infinite;
+    }
+
+    .hero::after {
+      width: 170px;
+      height: 120px;
+      right: max(28px, calc(50% - 700px));
+      top: 150px;
+      background: linear-gradient(145deg, rgba(255,255,255,.2), rgba(155,92,255,.22), rgba(103,232,255,.08));
+      border: 1px solid rgba(255,255,255,.2);
+      animation: floatSoft 8s ease-in-out infinite reverse;
+    }
+
+    .wrap {
+      max-width: var(--max);
+      margin: 0 auto;
+      position: relative;
+      z-index: 2;
+    }
+
+    .hero-head {
+      max-width: 920px;
+      margin: 0 auto 14px;
+      text-align: center;
+      animation: fadeUp 650ms ease both;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      padding: 0 13px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(16px);
+      font-size: 12px;
+    }
+
+    body.light .pill { background: rgba(255,255,255,.78); }
+
+    .hero-head h1 {
+      margin: 14px 0 10px;
+      font-size: clamp(24px, 3vw, 36px);
+      line-height: 1.08;
+      letter-spacing: -1px;
+      font-weight: 850;
+    }
+
+    .hero-head p {
+      margin: 0 auto;
+      max-width: 720px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    section {
+      position: relative;
+      padding: 64px 24px;
+    }
+
+    .section-head {
+      max-width: 820px;
+      margin: 0 auto 40px;
+      text-align: center;
+    }
+
+    .section-head h2 {
+      margin: 0 0 14px;
+      font-size: clamp(26px, 3vw, 40px);
+      line-height: 1.08;
+      font-weight: 830;
+      letter-spacing: -1px;
+    }
+
+    .section-head p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .compact-intro {
+      padding-top: 58px;
+    }
+
+    .compact-intro .section-head {
+      margin-bottom: 26px;
+    }
+
+    .intro-tags {
+      margin-top: 24px;
+    }
+
+    .try-shell {
+      display: grid;
+      grid-template-columns: minmax(0, 1.02fr) minmax(0, 0.98fr);
+      gap: 18px;
+      align-items: stretch;
+      margin-top: 50px;
+      animation: fadeUp 720ms ease 80ms both;
+    }
+
+    .try-panel, .glass-card {
+      border: 1px solid var(--border);
+      background:
+        linear-gradient(145deg, rgba(255,255,255,.085), rgba(255,255,255,.028)),
+        var(--surface);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(24px);
+    }
+
+    body.light .try-panel, body.light .glass-card {
+      background: var(--surface);
+    }
+
+    .try-panel {
+      border-radius: 26px;
+      padding: 20px;
+      height: 560px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(192, 132, 252, 0.55) transparent;
+    }
+
+    .try-panel::-webkit-scrollbar { width: 7px; }
+
+    .try-panel::-webkit-scrollbar-thumb {
+      background: rgba(192, 132, 252, 0.45);
+      border-radius: 999px;
+    }
+
+    .tabs, .segmented, .result-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .tab, .choice {
+      color: var(--text);
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.055);
+      transition: background 180ms ease, border 180ms ease, color 180ms ease, transform 180ms ease;
+    }
+
+    body.light .tab, body.light .choice {
+      color: #1f143a;
+      background: rgba(255,255,255,.9);
+    }
+
+    .tab {
+      min-height: 36px;
+      padding: 0 15px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 760;
+    }
+
+    .tab.active, .choice.active {
+      color: #ffffff;
+      border-color: rgba(192, 132, 252, 0.72);
+      background: linear-gradient(135deg, #7c3aed, #9b5cff);
+      box-shadow: 0 12px 30px rgba(139, 92, 246, 0.24);
+    }
+
+    body.light .tab.active, body.light .choice.active {
+      color: #160b2e;
+      background: linear-gradient(135deg, #d9c8ff, #bfa4ff);
+      border-color: rgba(124, 58, 237, 0.46);
+      text-shadow: none;
+    }
+
+    .input-wrap {
+      position: relative;
+      margin-top: 14px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 108px;
+      resize: none;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 16px;
+      color: var(--text);
+      background: rgba(0, 0, 0, 0.22);
+      outline: 0;
+      line-height: 1.55;
+      font-size: 15px;
+    }
+
+    body.light textarea {
+      color: #160b2e;
+      background: rgba(255,255,255,.88);
+    }
+
+    textarea:focus { border-color: rgba(192,132,252,.72); }
+
+    .small-action {
+      min-height: 30px;
+      padding: 0 10px;
+      color: var(--text);
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      font-size: 12px;
+      font-weight: 740;
+    }
+
+    .example-btn {
+      position: absolute;
+      right: 12px;
+      bottom: 12px;
+    }
+
+    .voice-row {
+      display: none;
+      align-items: center;
+      gap: 11px;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .voice-row.show { display: flex; }
+
+    .round-action {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      color: #fff;
+      background: linear-gradient(135deg, var(--purple), var(--lavender));
+      box-shadow: 0 14px 34px rgba(139,92,246,.3);
+    }
+
+    .control-group { margin-top: 14px; }
+
+    .control-group h4 {
+      margin: 0 0 10px;
+      font-size: 14px;
+      letter-spacing: 0;
+    }
+
+    .format-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .choice {
+      min-height: 62px;
+      padding: 12px;
+      border-radius: 17px;
+      text-align: left;
+    }
+
+    .choice:hover { transform: translateY(-2px); }
+
+    .choice strong {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 14px;
+    }
+
+    .choice span {
+      display: block;
+      opacity: .82;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .tone-row .choice {
+      min-height: 38px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 13px;
+      border-radius: 999px;
+      text-align: center;
+    }
+
+    .generate {
+      width: 100%;
+      min-height: 48px;
+      margin-top: 14px;
+      border-radius: 17px;
+      font-size: 16px;
+    }
+
+    .output-panel {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .empty-state {
+      margin: auto;
+      text-align: center;
+      color: var(--muted);
+      line-height: 1.8;
+      font-size: 16px;
+    }
+
+    .result {
+      display: none;
+      animation: fadeUp 320ms ease both;
+      min-height: 100%;
+    }
+
+    .result.show { display: block; }
+
+    .result-label {
+      margin: 0 0 8px;
+      color: var(--lavender);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-weight: 820;
+    }
+
+    .recommended {
+      white-space: pre-line;
+      border-radius: 20px;
+      padding: 18px;
+      margin-bottom: 14px;
+      border: 1px solid rgba(192,132,252,.42);
+      background: linear-gradient(145deg, rgba(139,92,246,.18), rgba(255,255,255,.04));
+      color: var(--text);
+      font-size: 18px;
+      line-height: 1.5;
+      box-shadow: 0 18px 54px rgba(139,92,246,.17);
+    }
+
+    body.light .recommended { color: #160b2e; }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 12px 0;
+    }
+
+    .mini, .feedback-box, .history-item {
+      border: 1px solid var(--border);
+      border-radius: 15px;
+      background: rgba(255,255,255,.04);
+    }
+
+    body.light .mini, body.light .feedback-box, body.light .history-item {
+      background: rgba(255,255,255,.74);
+    }
+
+    .mini {
+      padding: 11px;
+    }
+
+    .mini b {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--weak);
+      font-size: 12px;
+    }
+
+    .mini span {
+      font-weight: 760;
+      color: var(--text);
+      font-size: 13px;
+    }
+
+    .explain {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+    }
+
+    .explain h4 {
+      margin: 0 0 6px;
+      font-size: 14px;
+    }
+
+    .explain p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.58;
+      font-size: 14px;
+    }
+
+    .copy-btn, .ghost-btn {
+      padding: 0 15px;
+      color: var(--text);
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+    }
+
+    .feedback-box {
+      margin-top: 14px;
+      padding: 14px;
+    }
+
+    .feedback-box h4 {
+      margin: 0 0 8px;
+      font-size: 14px;
+    }
+
+    .feedback-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: start;
+    }
+
+    .feedback-row textarea {
+      min-height: 62px;
+      margin: 0;
+      border-radius: 15px;
+      font-size: 14px;
+    }
+
+    .feedback-row .primary-btn {
+      min-height: 62px;
+      border-radius: 15px;
+      padding: 0 16px;
+      white-space: nowrap;
+    }
+
+    .history {
+      display: none;
+      margin-top: 12px;
+    }
+
+    .history.show { display: block; }
+
+    .history h4 {
+      margin: 0 0 8px;
+      font-size: 14px;
+    }
+
+    .history-item {
+      padding: 10px 12px;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .tag {
+      padding: 9px 13px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      background: var(--surface);
+      font-size: 13px;
+    }
+
+    .grid-3, .grid-4, .compare-grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .grid-3 { grid-template-columns: repeat(3, 1fr); }
+    .grid-4 { grid-template-columns: repeat(4, 1fr); }
+    .compare-grid { grid-template-columns: repeat(3, 1fr); }
+
+    .glass-card {
+      min-height: 178px;
+      padding: 24px;
+      border-radius: 24px;
+      transition: transform 220ms ease, border 220ms ease, box-shadow 220ms ease;
+    }
+
+    .glass-card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(192,132,252,.45);
+      box-shadow: 0 26px 84px rgba(139,92,246,.24);
+    }
+
+    .glass-card h3 {
+      margin: 0 0 12px;
+      font-size: 21px;
+      line-height: 1.25;
+    }
+
+    .glass-card p, .glass-card li {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.72;
+      font-size: 15px;
+    }
+
+    .glass-card ul {
+      padding-left: 18px;
+      margin: 0;
+    }
+
+    .compare-card.featured {
+      border-color: rgba(192,132,252,.58);
+      box-shadow: 0 28px 86px rgba(139,92,246,.28);
+    }
+
+    .small-label {
+      color: var(--lavender);
+      font-size: 12px;
+      font-weight: 820;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      margin-bottom: 14px;
+    }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 38px 24px 50px;
+      color: var(--muted);
+    }
+
+    .footer-inner {
+      max-width: var(--max);
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      flex-wrap: wrap;
+      align-items: flex-start;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 18px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      min-width: min(420px, 100%);
+    }
+
+    .footer-links button, .footer-links a {
+      color: var(--muted);
+      background: transparent;
+      padding: 0;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes floatSoft {
+      0%, 100% { translate: 0 0; }
+      50% { translate: 0 18px; }
+    }
+
+    @media (max-width: 1120px) {
+      .hero { min-height: auto; }
+      .try-shell, .grid-3, .grid-4, .compare-grid { grid-template-columns: 1fr; }
+      .try-panel { height: auto; min-height: 500px; }
+      .result { max-height: 620px; }
+    }
+
+    @media (max-width: 680px) {
+      .nav-inner { padding: 0 16px; }
+      .brand span:last-child { display: none; }
+      .primary-btn.nav-cta { padding: 0 14px; font-size: 13px; }
+      .hero { padding: 22px 14px 34px; }
+      section { padding: 70px 16px; }
+      .try-panel { padding: 16px; border-radius: 22px; }
+      .format-grid, .meta-grid, .feedback-row { grid-template-columns: 1fr; }
+      .feedback-row .primary-btn { min-height: 48px; }
+      .recommended { font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a class="brand" href="#try" onclick="scrollToTry(); return false;">
+        <span class="logo" aria-hidden="true"></span>
+        <span>SpeakEasy</span>
+      </a>
+      <div class="nav-right">
+        <button class="icon-btn" id="themeToggle" aria-label="Toggle theme" title="Toggle theme">☾</button>
+        <button class="primary-btn nav-cta" onclick="scrollToTry()">Try for free</button>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <section class="hero" id="try">
+      <div class="wrap">
+        <div class="hero-head">
+          <div class="pill">Lowest-friction advisor communication · 最低沟通成本</div>
+          <h1>把想法说清楚就好</h1>
+          <p>输入中文或中英混合想法，SpeakEasy 帮你用更低沟通成本生成自然、清楚、适合导师场景的英文表达。</p>
+        </div>
+
+        <div class="try-shell">
+          <div class="try-panel">
+            <div class="tabs" role="tablist" aria-label="Input method">
+              <button class="tab active" data-input-tab="text">Text 文字</button>
+              <button class="tab" data-input-tab="voice">Voice 语音</button>
+            </div>
+
+            <div class="input-wrap">
+              <textarea id="thoughtInput" placeholder="写下你真正想表达的内容，可以直接输入中文……&#10;Type what you really want to say…"></textarea>
+              <button class="small-action example-btn" id="exampleBtn">显示案例</button>
+            </div>
+
+            <div class="voice-row" id="voiceRow">
+              <button class="round-action" id="micBtn" title="Record voice" aria-label="Record voice">●</button>
+              <span id="voiceStatus">Click to simulate voice input · 点击模拟语音输入</span>
+            </div>
+
+            <div class="control-group">
+              <h4>沟通方式 · Communication format</h4>
+              <div class="format-grid" id="formatChoices">
+                <button class="choice active" data-format="email"><strong>Email（邮件）</strong><span>正式结构，完整句子</span></button>
+                <button class="choice" data-format="face"><strong>Face-to-face（面对面）</strong><span>口语自然，容易说出口</span></button>
+                <button class="choice" data-format="text"><strong>Text message（文字消息）</strong><span>简短清楚，信息清晰</span></button>
+                <button class="choice" data-format="teams"><strong>Teams / Chat（即时消息）</strong><span>快速沟通，简短友好</span></button>
+              </div>
+            </div>
+
+            <div class="control-group">
+              <h4>语气 · Tone</h4>
+              <div class="segmented tone-row" id="toneChoices">
+                <button class="choice active" data-tone="polite">Polite（礼貌）</button>
+                <button class="choice" data-tone="gentle">Gentle（委婉）</button>
+                <button class="choice" data-tone="direct">Direct（直接）</button>
+                <button class="choice" data-tone="formal">Formal（正式）</button>
+              </div>
+            </div>
+
+            <button class="primary-btn generate" id="generateBtn">Express clearly · 优化表达</button>
+          </div>
+
+          <div class="try-panel output-panel">
+            <div class="empty-state" id="emptyState">
+              <div>Your expression will appear here</div>
+              <div>优化后的表达将显示在这里</div>
+            </div>
+
+            <div class="result" id="result">
+              <p class="result-label">Recommended expression · 推荐表达</p>
+              <div class="recommended" id="recommended"></div>
+
+              <div class="result-actions">
+                <button class="copy-btn" id="copyBtn">Copy · 复制</button>
+                <button class="ghost-btn" id="playBtn">Play audio · 播放</button>
+              </div>
+
+              <div class="explain">
+                <h4>中文理解</h4>
+                <p id="meaning"></p>
+              </div>
+
+              <div class="meta-grid">
+                <div class="mini"><b>Format · 沟通方式</b><span id="formatMeta"></span></div>
+                <div class="mini"><b>Tone · 语气</b><span id="toneMeta"></span></div>
+              </div>
+
+              <div class="explain">
+                <h4>Why this works · 为什么这样表达</h4>
+                <p id="why"></p>
+              </div>
+
+              <div class="explain">
+                <h4>Usage advice · 使用建议</h4>
+                <p id="advice"></p>
+              </div>
+
+              <div class="feedback-box">
+                <h4>继续优化 · Refine this expression</h4>
+                <div class="feedback-row">
+                  <textarea id="feedbackInput" placeholder="例如：太正式了；太直接了，我想更加委婉一点；再短一点……"></textarea>
+                  <button class="primary-btn" id="refineBtn">继续优化</button>
+                </div>
+                <div class="history" id="history">
+                  <h4>优化记录 · Revision history</h4>
+                  <div id="historyList"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="compact-intro">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>从复杂想法到简单表达</h2>
+          <p>SpeakEasy 面向中国留学生和导师沟通场景。它先理解真实意思，再根据沟通方式、语气和反馈，生成一个可以直接使用的英文表达。</p>
+        </div>
+        <div class="grid-3">
+          <article class="glass-card">
+            <h3>Meaning first</h3>
+            <p>不逐字跟随中文结构，先判断你是在请求、解释、更新、澄清还是改约。</p>
+          </article>
+          <article class="glass-card">
+            <h3>Format aware</h3>
+            <p>Email、面对面、文字消息和 Teams / Chat 会生成不同长度和结构的英文。</p>
+          </article>
+          <article class="glass-card">
+            <h3>Refineable</h3>
+            <p>如果觉得太正式、太直接或不够委婉，可以继续反馈，让表达逐步贴近你的真实意图。</p>
+          </article>
+        </div>
+        <div class="tag-row intro-tags">
+          <span class="tag">导师邮件 Advisor Email</span>
+          <span class="tag">面对面沟通 Face-to-face</span>
+          <span class="tag">文字消息 Text Message</span>
+          <span class="tag">Teams / Chat 即时消息</span>
+          <span class="tag">进度更新 Progress Update</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+      <div>
+        <strong>SpeakEasy · AI expression assistant for Chinese international students</strong><br />
+        为中国留学生设计的英文表达辅助工具
+      </div>
+      <div class="footer-links">
+        <button onclick="scrollToTop()">Back to top</button>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const SYSTEM_PROMPT_DESIGN = `
+SpeakEasy is not a literal translation tool, grammar checker, or generic chatbot.
+It must transform Chinese or mixed-language messy thoughts into one natural, simple, advisor-ready English expression.
+
+Reasoning structure:
+1. Understand the user's real meaning, not the surface wording.
+2. Identify the communication context: advisor/teacher/staff, academic setting, likely goal and risk.
+3. Adapt to the selected communication format: Email, Face-to-face, Text message, or Teams / Chat.
+4. Adapt to the selected tone: Polite, Gentle, Direct, or Formal.
+5. Produce one recommended English expression only.
+6. Explain in Chinese what it means, why it works, and how to use it.
+7. If the user gives feedback, revise the latest expression according to that feedback while preserving the original meaning.
+
+Constraints:
+- Use simple, natural English.
+- Do not over-apologise.
+- Do not add facts the user did not provide.
+- Do not output multiple alternatives at once.
+- Do not sound like a literal machine translation.
+- Keep the expression suitable for Chinese postgraduate students communicating in a UK academic environment.
+`;
+
+    const state = {
+      format: "email",
+      tone: "polite",
+      inputMode: "text",
+      lastExpression: "",
+      revisionCount: 0
+    };
+
+    const sampleText = "我最近这段时间其实一直在推进这个部分，只是因为数据整理花的时间比我原来预计的更久，所以目前整体进度比我预期稍微慢了一点。";
+
+    const formatNames = {
+      email: "Email（邮件）",
+      face: "Face-to-face（面对面）",
+      text: "Text message（文字消息）",
+      teams: "Teams / Chat（即时消息）"
+    };
+
+    const toneNames = {
+      polite: "Polite（礼貌）",
+      gentle: "Gentle（委婉）",
+      direct: "Direct（直接）",
+      formal: "Formal（正式）"
+    };
+
+    function scrollToTry() {
+      const section = document.getElementById("try");
+      const y = section.getBoundingClientRect().top + window.pageYOffset - 64;
+      window.scrollTo({ top: y, behavior: "smooth" });
+    }
+
+    function scrollToTop() {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function hasAny(text, keywords) {
+      return keywords.some(keyword => text.includes(keyword.toLowerCase()));
+    }
+
+    function detectIntent(inputText) {
+      const text = inputText.toLowerCase();
+      if (hasAny(text, ["改时间", "换时间", "重新约", "改期", "individual meeting", "meeting", "医生", "看病", "预约", "medical appointment", "doctor", "reschedule"])) {
+        return "reschedule";
+      }
+      if (hasAny(text, ["数据整理", "data cleaning", "进度", "慢", "比预期慢", "longer than expected", "behind schedule", "推进", "还在做", "延迟", "晚一点"])) {
+        return "progressDelay";
+      }
+      if (hasAny(text, ["多几天", "延期", "晚几天", "能不能晚点", "更多时间", "more time", "extension", "few more days"])) {
+        return "moreTime";
+      }
+      if (hasAny(text, ["反馈", "没太明白", "不确定", "clarify", "comments", "suggestion", "能不能解释", "feedback"])) {
+        return "clarifyFeedback";
+      }
+      return "general";
+    }
+
+    function sentenceBank(intent, tone) {
+      const bank = {
+        reschedule: {
+          polite: {
+            email: "I hope you are well. I’m sorry, but I may need to reschedule our individual meeting, as I have a medical appointment at the originally planned time. Would it be possible to arrange another time?",
+            face: "Sorry, I may need to change the time of our individual meeting because I have a doctor’s appointment then. Would another time be possible?",
+            text: "Hi Dr. [Name], sorry, I may need to reschedule our individual meeting because I have a doctor’s appointment at that time. Would another time be possible?",
+            teams: "Hi Dr. [Name], sorry — I have a medical appointment at our planned meeting time. Could we reschedule?"
+          },
+          gentle: {
+            email: "I hope you are well. I was wondering if it might be possible to reschedule our individual meeting, as I have a medical appointment at the originally planned time.",
+            face: "Sorry, I was wondering if we could possibly change the time of our individual meeting, as I have a doctor’s appointment then.",
+            text: "Hi Dr. [Name], sorry, I was wondering if we could possibly reschedule our individual meeting because I have a doctor’s appointment then.",
+            teams: "Hi Dr. [Name], sorry — I have a medical appointment then. Would it be possible to reschedule?"
+          },
+          direct: {
+            email: "I need to reschedule our individual meeting because I have a medical appointment at the planned time. Could we arrange another time?",
+            face: "I need to change our individual meeting time because I have a doctor’s appointment then. Could we arrange another time?",
+            text: "Hi Dr. [Name], I need to reschedule our individual meeting because I have a doctor’s appointment at that time. Could we arrange another time?",
+            teams: "Hi Dr. [Name], I have a medical appointment at our meeting time. Could we reschedule?"
+          },
+          formal: {
+            email: "I hope you are well. I am writing to ask whether it would be possible to reschedule our individual meeting, as I have a medical appointment at the originally planned time.",
+            face: "I wanted to ask whether it would be possible to reschedule our individual meeting, as I have a medical appointment at that time.",
+            text: "Hi Dr. [Name], I would like to ask whether it would be possible to reschedule our individual meeting due to a medical appointment.",
+            teams: "Hi Dr. [Name], I have a medical appointment at the planned meeting time. May we reschedule?"
+          }
+        },
+        progressDelay: {
+          polite: {
+            email: "I hope you are well. I wanted to briefly update you that I have been working on this part, but the data cleaning has taken longer than I expected, so I am slightly behind schedule. I will keep working on it and update you as soon as I make further progress.",
+            face: "I’ve been working on it, but the data cleaning took longer than I expected, so I’m a bit behind schedule.",
+            text: "Hi Dr. [Name], I’ve been working on it, but data cleaning took longer than expected, so I’m a bit behind schedule.",
+            teams: "Quick update: data cleaning took longer than expected, so I’m slightly behind schedule."
+          },
+          gentle: {
+            email: "I hope you are well. I just wanted to give you a brief update. I have been working on this part, but the data cleaning has taken a little longer than I expected, so my progress is slightly slower than planned.",
+            face: "I’ve been working on it, but the data cleaning has taken a bit longer than I expected, so I’m slightly behind where I hoped to be.",
+            text: "Hi Dr. [Name], I just wanted to update you that data cleaning has taken a bit longer than expected, so I’m slightly behind schedule.",
+            teams: "Quick update: data cleaning has taken a bit longer than expected, so I’m slightly behind."
+          },
+          direct: {
+            email: "I have been working on this part, but data cleaning took longer than expected. As a result, I am slightly behind schedule and will update you when I make further progress.",
+            face: "Data cleaning took longer than expected, so I’m slightly behind schedule, but I’m continuing to work on it.",
+            text: "Hi Dr. [Name], data cleaning took longer than expected, so I’m slightly behind schedule. I’ll keep working on it.",
+            teams: "Data cleaning took longer than expected, so I’m slightly behind schedule."
+          },
+          formal: {
+            email: "I hope you are well. I would like to provide a brief progress update. I have continued working on this part; however, the data cleaning process has taken longer than anticipated, so the overall progress is slightly behind schedule.",
+            face: "I have continued working on this part, but data cleaning has taken longer than expected, so progress is slightly behind schedule.",
+            text: "Hi Dr. [Name], I would like to update you that data cleaning has taken longer than anticipated, so progress is slightly behind schedule.",
+            teams: "Progress update: data cleaning has taken longer than anticipated, so I am slightly behind schedule."
+          }
+        },
+        moreTime: {
+          polite: {
+            email: "I hope you are well. I wanted to ask whether it would be possible to have a few more days to complete this. I want to make sure the work is clear and properly finished.",
+            face: "Would it be possible for me to have a few more days to finish this properly?",
+            text: "Hi Dr. [Name], would it be possible for me to have a few more days to complete this properly?",
+            teams: "Hi Dr. [Name], could I have a few more days to finish this properly?"
+          },
+          gentle: {
+            email: "I hope you are well. I was wondering if it might be possible to have a few more days to complete this, so I can make sure the work is finished properly.",
+            face: "I was wondering if I could possibly have a few more days to finish this properly.",
+            text: "Hi Dr. [Name], I was wondering if I could possibly have a few more days to finish this properly.",
+            teams: "Hi Dr. [Name], would it be possible to have a few more days for this?"
+          },
+          direct: {
+            email: "I need a few more days to complete this properly. Would it be possible to extend the deadline?",
+            face: "I need a few more days to finish this properly. Would that be possible?",
+            text: "Hi Dr. [Name], I need a few more days to complete this. Would that be possible?",
+            teams: "Hi Dr. [Name], could I have a few more days to complete this?"
+          },
+          formal: {
+            email: "I hope you are well. I am writing to ask whether it would be possible to extend the deadline by a few days, as I would like to ensure the work is completed to an appropriate standard.",
+            face: "I would like to ask whether it would be possible to extend the deadline by a few days.",
+            text: "Hi Dr. [Name], may I ask whether it would be possible to extend the deadline by a few days?",
+            teams: "Hi Dr. [Name], may I request a few additional days to complete this?"
+          }
+        },
+        clarifyFeedback: {
+          polite: {
+            email: "I hope you are well. Thank you for your feedback. I wanted to ask whether you could please clarify one point for me, as I am not completely sure how to apply the suggestion.",
+            face: "Thank you for the feedback. Could you please clarify this point for me? I’m not completely sure how to apply the suggestion.",
+            text: "Hi Dr. [Name], thank you for your feedback. Could you please clarify one point for me? I’m not fully sure how to apply the suggestion.",
+            teams: "Hi Dr. [Name], thanks for the feedback. Could you clarify one point for me?"
+          },
+          gentle: {
+            email: "I hope you are well. Thank you for your feedback. I was wondering if you could kindly clarify one point, as I want to make sure I understand your suggestion correctly.",
+            face: "Thank you for the feedback. I was wondering if you could clarify this point, because I want to make sure I understand it correctly.",
+            text: "Hi Dr. [Name], thanks for your feedback. I was wondering if you could clarify one point so I can understand it correctly.",
+            teams: "Hi Dr. [Name], thanks for the feedback. Could you kindly clarify one point?"
+          },
+          direct: {
+            email: "Thank you for your feedback. Could you clarify this point for me? I am not sure how to apply the suggestion.",
+            face: "Could you clarify this point for me? I’m not sure how to apply the suggestion.",
+            text: "Hi Dr. [Name], could you clarify this point for me? I’m not sure how to apply the suggestion.",
+            teams: "Hi Dr. [Name], could you clarify this point?"
+          },
+          formal: {
+            email: "I hope you are well. Thank you for your feedback. I would be grateful if you could clarify one point, as I would like to ensure that I understand and apply your suggestion correctly.",
+            face: "I would be grateful if you could clarify this point, as I want to make sure I apply your suggestion correctly.",
+            text: "Hi Dr. [Name], I would be grateful if you could clarify one point from your feedback.",
+            teams: "Hi Dr. [Name], could you please clarify one point from your feedback?"
+          }
+        },
+        general: {
+          polite: {
+            email: "I hope you are well. I wanted to briefly explain my situation and ask for your advice on the next step. Could you please let me know what you would suggest?",
+            face: "I wanted to explain my situation briefly and ask what you would suggest as the next step.",
+            text: "Hi Dr. [Name], I wanted to briefly explain my situation and ask what you would suggest as the next step.",
+            teams: "Hi Dr. [Name], could I briefly ask for your advice on the next step?"
+          },
+          gentle: {
+            email: "I hope you are well. I was wondering if I could briefly explain my situation and ask for your advice on what might be the best next step.",
+            face: "I was wondering if I could briefly explain my situation and ask what you think would be best to do next.",
+            text: "Hi Dr. [Name], I was wondering if I could ask for your advice on what might be the best next step.",
+            teams: "Hi Dr. [Name], could I ask for your advice on the next step?"
+          },
+          direct: {
+            email: "I wanted to explain my situation and ask for your advice on the next step. Could you let me know what you suggest?",
+            face: "I’d like to explain my situation and ask what you suggest I do next.",
+            text: "Hi Dr. [Name], I’d like to ask for your advice on the next step.",
+            teams: "Hi Dr. [Name], what would you suggest as the next step?"
+          },
+          formal: {
+            email: "I hope you are well. I am writing to briefly explain my situation and ask for your guidance on the most appropriate next step.",
+            face: "I would like to briefly explain my situation and ask for your guidance on the next step.",
+            text: "Hi Dr. [Name], I would like to ask for your guidance on the most appropriate next step.",
+            teams: "Hi Dr. [Name], may I ask for your guidance on the next step?"
+          }
+        }
+      };
+      return bank[intent][tone];
+    }
+
+    function wrapForEmail(body, tone) {
+      const close = tone === "formal" ? "Kind regards," : "Best regards,";
+      return "Dear Dr. [Name],\n\n" + body + "\n\n" + close;
+    }
+
+    function generateExpression(intent, format, tone) {
+      const body = sentenceBank(intent, tone)[format];
+      const expression = format === "email" ? wrapForEmail(body, tone) : body;
+      const explanations = {
+        reschedule: {
+          meaning: "意思是：你礼貌地说明因为医生预约，需要调整 individual meeting 的时间，并询问老师是否方便重新安排。",
+          why: "这段表达先说明情况，再提出请求，语气礼貌清楚，没有过度解释，也不会显得失礼。",
+          advice: "适合用于给导师改约会议时间。如果已经知道新的可行时间，也可以在后面补充你的可选时间段。"
+        },
+        progressDelay: {
+          meaning: "意思是：你说明自己一直在推进工作，但数据整理比预计更久，所以目前进度稍微落后。",
+          why: "表达重点放在事实和进展上，避免把原因说得太复杂，也不会显得像是在找借口。",
+          advice: "适合用于进度更新。可以在后面加一句你接下来会做什么，帮助老师看到你仍在推进。"
+        },
+        moreTime: {
+          meaning: "意思是：你希望多要几天时间完成任务，并说明这样可以把工作做得更完整。",
+          why: "表达直接提出请求，同时给出合理原因，既清楚又保持礼貌。",
+          advice: "适合用于申请延期或多一点准备时间。最好补充一个明确的新完成时间。"
+        },
+        clarifyFeedback: {
+          meaning: "意思是：你感谢老师的反馈，并请求老师解释其中一个你还不太确定的地方。",
+          why: "先感谢，再提出具体澄清请求，可以让问题听起来主动、认真，而不是单纯说自己没懂。",
+          advice: "适合用于回复导师 comments 或开会前确认反馈。建议指出具体是哪一句或哪一点反馈。"
+        },
+        general: {
+          meaning: "意思是：你想把当前情况说清楚，并礼貌地询问老师下一步建议。",
+          why: "在无法判断具体场景时，这种表达保留了真实意思，同时适合学术沟通，不会过度复杂。",
+          advice: "适合用于不确定怎样开口的情况。你可以加入更多细节，SpeakEasy 会根据关键词调整表达。"
+        }
+      };
+      return { expression, ...explanations[intent] };
+    }
+
+    function applyFeedback(expression, feedback, format) {
+      const f = feedback.toLowerCase();
+      let revised = expression;
+
+      if (f.includes("委婉") || f.includes("gentle") || f.includes("softer")) {
+        revised = revised
+          .replace("I need to", "I was wondering if I could")
+          .replace("Could we", "Would it be possible to")
+          .replace("Could you", "Would you be able to");
+      }
+
+      if (f.includes("直接") || f.includes("direct") || f.includes("short")) {
+        revised = revised
+          .replace("I hope you are well. ", "")
+          .replace("I’m sorry, but ", "")
+          .replace("I wanted to briefly update you that ", "")
+          .replace("I just wanted to give you a brief update. ", "");
+      }
+
+      if (f.includes("正式") || f.includes("formal")) {
+        revised = revised
+          .replace("Hi Dr. [Name],", "Dear Dr. [Name],")
+          .replace("Quick update:", "I would like to provide a brief update:")
+          .replace("a bit", "slightly");
+      }
+
+      if (f.includes("短") || f.includes("简短") || f.includes("concise")) {
+        const lines = revised.split("\n").filter(Boolean);
+        revised = lines.find(line => !line.startsWith("Dear ") && !line.endsWith("regards,")) || revised;
+      }
+
+      if (revised === expression) {
+        revised = expression + "\n\nRevision note: adjusted to better match your feedback while keeping the original meaning.";
+      }
+
+      if (format === "email" && !revised.startsWith("Dear Dr. [Name],")) {
+        revised = wrapForEmail(revised, state.tone);
+      }
+
+      return revised;
+    }
+
+    function showOutputPanel() {
+      document.getElementById("emptyState").style.display = "none";
+      document.getElementById("result").classList.add("show");
+      document.getElementById("formatMeta").textContent = formatNames[state.format];
+      document.getElementById("toneMeta").textContent = toneNames[state.tone];
+    }
+
+    async function renderOutput(isRefinement = false) {
+      const inputText = document.getElementById("thoughtInput").value.trim();
+      const generateBtn = document.getElementById("generateBtn");
+
+      if (!inputText) {
+        showOutputPanel();
+        document.getElementById("recommended").textContent = "Please enter what you want to express first.";
+        document.getElementById("meaning").textContent = "请先输入你想表达的内容，可以直接写中文或中英混合。";
+        document.getElementById("why").textContent = "SpeakEasy 需要先理解你的真实意思，再生成适合场景的英文表达。";
+        document.getElementById("advice").textContent = "如果不确定怎么开始，可以点击左侧输入框右下角的“显示案例”。";
+        return;
+      }
+
+      showOutputPanel();
+      generateBtn.disabled = true;
+      generateBtn.textContent = "Generating… 正在优化";
+      document.getElementById("recommended").textContent = "Generating your expression…";
+      document.getElementById("meaning").textContent = "正在理解你的真实意思，并匹配沟通方式和语气。";
+      document.getElementById("why").textContent = "";
+      document.getElementById("advice").textContent = "";
+
+      try {
+        const response = await fetch("/api/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            input: inputText,
+            format: formatNames[state.format],
+            tone: toneNames[state.tone]
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error("Request failed");
+        }
+
+        const output = await response.json();
+        state.lastExpression = output.expression || "";
+        state.revisionCount = 0;
+
+        document.getElementById("recommended").textContent = output.expression || "No expression was generated.";
+        document.getElementById("meaning").textContent = output.explanation || "暂无中文解释。";
+        document.getElementById("why").textContent = "SpeakEasy 已根据你选择的沟通方式和语气，生成一个更自然、可直接使用的英文表达。";
+        document.getElementById("advice").textContent = output.usageTip || "你可以继续输入反馈，让表达更贴近你的真实语气。";
+      } catch (error) {
+        state.lastExpression = "";
+        document.getElementById("recommended").textContent = "Sorry, SpeakEasy could not generate the expression right now.";
+        document.getElementById("meaning").textContent = "生成失败了。请稍后再试，或检查 Vercel 的 GEMINI_API_KEY 是否已正确配置。";
+        document.getElementById("why").textContent = "";
+        document.getElementById("advice").textContent = "如果你刚刚部署了环境变量，请重新部署一次项目后再测试。";
+      } finally {
+        generateBtn.disabled = false;
+        generateBtn.textContent = "Express clearly · 优化表达";
+      }
+
+      if (!isRefinement) {
+        document.getElementById("historyList").innerHTML = "";
+        document.getElementById("history").classList.remove("show");
+      }
+    }
+
+    function activateChoice(containerId, attrName, value) {
+      document.querySelectorAll("#" + containerId + " .choice").forEach(button => {
+        button.classList.toggle("active", button.dataset[attrName] === value);
+      });
+    }
+
+    document.getElementById("themeToggle").addEventListener("click", () => {
+      document.body.classList.toggle("light");
+      document.getElementById("themeToggle").textContent = document.body.classList.contains("light") ? "☀" : "☾";
+    });
+
+    document.querySelectorAll("[data-input-tab]").forEach(tab => {
+      tab.addEventListener("click", () => {
+        state.inputMode = tab.dataset.inputTab;
+        document.querySelectorAll("[data-input-tab]").forEach(item => item.classList.toggle("active", item === tab));
+        document.getElementById("voiceRow").classList.toggle("show", state.inputMode === "voice");
+      });
+    });
+
+    document.querySelectorAll("[data-format]").forEach(button => {
+      button.addEventListener("click", () => {
+        state.format = button.dataset.format;
+        activateChoice("formatChoices", "format", state.format);
+        if (state.lastExpression) renderOutput();
+      });
+    });
+
+    document.querySelectorAll("[data-tone]").forEach(button => {
+      button.addEventListener("click", () => {
+        state.tone = button.dataset.tone;
+        activateChoice("toneChoices", "tone", state.tone);
+        if (state.lastExpression) renderOutput();
+      });
+    });
+
+    document.getElementById("generateBtn").addEventListener("click", () => renderOutput());
+
+    document.getElementById("exampleBtn").addEventListener("click", () => {
+      document.getElementById("thoughtInput").value = sampleText;
+      document.getElementById("thoughtInput").focus();
+    });
+
+    document.getElementById("micBtn").addEventListener("click", () => {
+      const status = document.getElementById("voiceStatus");
+      status.textContent = "Recording… 正在录音";
+      setTimeout(() => {
+        document.getElementById("thoughtInput").value = "帮我和老师解释一下我的 individual meeting 需要改时间，原本计划的时间我预约了医生要去看病。";
+        status.textContent = "Voice captured · 已填入语音示例";
+      }, 800);
+    });
+
+    document.getElementById("refineBtn").addEventListener("click", async () => {
+      if (!state.lastExpression) await renderOutput();
+      const feedbackInput = document.getElementById("feedbackInput");
+      const feedback = feedbackInput.value.trim();
+      if (!feedback) return;
+
+      const previous = state.lastExpression;
+      const revised = applyFeedback(previous, feedback, state.format);
+      state.lastExpression = revised;
+      state.revisionCount += 1;
+      document.getElementById("recommended").textContent = revised;
+      document.getElementById("why").textContent = "这次根据你的反馈继续调整了表达方式，同时保留原始意思和当前沟通格式。";
+      document.getElementById("advice").textContent = "如果还不满意，可以继续输入反馈，例如“再短一点”“更礼貌一点”“更像面对面说的话”。";
+
+      const item = document.createElement("div");
+      item.className = "history-item";
+      item.textContent = "Version " + state.revisionCount + " · " + feedback;
+      document.getElementById("historyList").prepend(item);
+      document.getElementById("history").classList.add("show");
+      feedbackInput.value = "";
+    });
+
+    document.getElementById("copyBtn").addEventListener("click", async () => {
+      if (!state.lastExpression) return;
+      const button = document.getElementById("copyBtn");
+      try {
+        await navigator.clipboard.writeText(state.lastExpression);
+      } catch (error) {
+        const temp = document.createElement("textarea");
+        temp.value = state.lastExpression;
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand("copy");
+        temp.remove();
+      }
+      button.textContent = "Copied · 已复制";
+      setTimeout(() => button.textContent = "Copy · 复制", 1300);
+    });
+
+    document.getElementById("playBtn").addEventListener("click", () => {
+      const button = document.getElementById("playBtn");
+      button.textContent = "Playing… 播放中";
+      setTimeout(() => button.textContent = "Play audio · 播放", 1200);
+    });
+  </script>
+</body>
+</html>
