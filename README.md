@@ -4,14 +4,20 @@ SpeakEasy is an AI expression assistant for Chinese international students. It h
 
 This project is a single-page website with a Vercel Serverless API route.
 
+## How to use
+
+Open the deployed SpeakEasy website link in a browser.
+
+Normal users do not need to install anything or enter a Gemini API key. The website calls the backend API automatically.
+
 ## Files
 
 - `index.html` - frontend website and interaction UI
 - `api/generate.js` - Vercel Serverless Function that calls Gemini
 
-## Deployment
+## Developer deployment
 
-Deploy this repository on Vercel.
+If you want to deploy your own copy of this project, deploy this repository on Vercel.
 
 Required environment variable:
 
@@ -20,6 +26,8 @@ GEMINI_API_KEY=your_gemini_api_key
 ```
 
 After adding or changing the environment variable in Vercel, redeploy the project.
+
+The API key is configured in Vercel, not typed into the website by users.
 
 ## Notes
 
